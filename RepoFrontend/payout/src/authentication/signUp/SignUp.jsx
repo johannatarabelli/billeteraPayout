@@ -1,3 +1,5 @@
+import { useState } from "react"
+import { Link, NavLink, useNavigate } from "react-router-dom"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as Yup from 'yup'
 import './SignUp.css'
@@ -5,13 +7,12 @@ import  google  from '../../assets/google.png'
 import  apple  from '../../assets/apple.png'
 import  image  from '../../assets/Signup-imagen.png'
 import CustomButton from "../components/CustomButton"
+import InputField from "../components/InputField"
+import PasswordField from "../components/PasswordField"
+/* import { fetchSignUp } from "../../api/authApi" */
 
 
-const schema = Yup.object().shape({
-    /* nombre: Yup.string()
-                .min(2, "El nombre es demasiado corto")
-                .max(30, "Máximo 30 caracteres")
-                .required("Este campo es obligatorio"), */
+const schema = Yup.object().shape({    
     email: Yup.string()                
                 .email("El email es inválido")
                 .required("Este campo es obligatorio"),
@@ -20,95 +21,141 @@ const schema = Yup.object().shape({
                 .required('Este campo es requerido'),
     password: Yup.string()
                 .min(8, "La contraseña es demasiado corta")
-                .required("Este campo es obligatorio"),
-    /* rPassword: Yup.string()
-                .oneOf([Yup.ref('password'), null], 'Las contraseñas no coinciden')
-                .required('Este campo es requerido'), */
-                
+                .required("Este campo es obligatorio"),                
 })
 
-
-
+const urlSignUp = 'https://payout.redromsolutions.com/register'
 
 
 export const SignUp = () => { 
 
+    let navigate = useNavigate()
+    // const [email, setEmail] = useState(null);
+    // const [rEmail, setREmail] = useState(null);
+    // const [password, setPassword] = useState(null);
+
+    const [showPassword, setShowPassword] = useState(false);
+/*     const [light, setLight] = useState(true); */
+
+    const togglePasswordVisibility = () => {
+      setShowPassword(!showPassword);
+    };
+
+/*     const toggleTheme = () => {
+        setLight(!light);
+      };
+ */
+
+
+    const handleSubmit = async (values) => {   
+        console.log('Formulario enviado:', values) 
+        
+        fetch(urlSignUp, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Accept: "application/json",
+                    },
+                    body: JSON.stringify({              
+                      email: values.email,                      
+                      password: values.password
+                    }),                    
+                  })
+                    .then((res) => {res.json()
+                
+                    console.log('res.json', res.json)
+                }
+                )
+                    .then((data) => {
+                      const token = data.token
+                      localStorage.setItem('token', token)
+                      navigate('/home')
+                    })
+                    .catch (error =>{
+                      console.log(error)              
+                    })
+             
+    }
+
+
+
   return (
-    <div className="h-full py-0 md:py-6 bg-secundario flex gap-14 justify-center ">
-        <div className="w-[466px] h-full md:h-[614px] py-11 px-16 bg-white rounded-[15px] shadow-down-dark-md">
-            <h2 className="text-[26px] font-semibold leading-[63px] text-center pb-11">REGISTRO</h2>
+    <>
+    {/* <button id='button-toggle-mode' onClick={toggleTheme} className="bg-primario w-[100px] rounded-md my-2 mx-2 text-white">Tema</button> */}
+    <div className="md:py-8 lg:px-8 flex xl:gap-14 lg:gap-14 justify-center h-[90vh] dark:bg-dark">
+        
+        <div className="w-full md:w-[466px] h-[90vh] lg:h-[500px] xl:h-[614px] py-11 px-6 md:px-16 bg-white md:rounded-[15px] shadow-down-dark-md">
+            <h2 className="text-[26px] leading-[63px] text-center text-primario">REGISTRO</h2>
 
             <Formik
-                initialValues={{
-                    /* nombre: '', */
+                initialValues={{                    
                     email: '',
                     rEmail: '',
-                    password: '',
-                    /* rPassword: '' */
+                    password: '',                    
                 }}
-                onSubmit={(values) => {
+                /* onSubmit={(values) => {
                     console.log('Formulario enviado:', values);
-                }}
+                }} */
+                onSubmit={handleSubmit}
                 validationSchema={schema}
             >
                 {({ isValid, dirty }) => (
-                    <Form className="flex flex-col gap-4">
-                        {/* <Field placeholder="Nombre" className="py-8 border border-gray-300 rounded" type="text" name="nombre"/>
-                        <ErrorMessage name="nombre" component="p"/> */}
+                    <Form className="flex flex-col gap-4 text-black">                        
 
-                        <Field placeholder="Email" className="custom-field" type="email" name="email"/>
-                        <ErrorMessage name="email" component="p" className="custom-error-message"/>
+                        {/* EMAIL */}
+                        <InputField placeholder="Email" type='email' name='email' />
 
-                        <Field placeholder="Confirma tu email" className="custom-field" type="email" name="rEmail"/>
-                        <ErrorMessage name="rEmail" component="p" className="custom-error-message"/>
+                        {/* CONFIRMA EMAIL */}
+                        <InputField placeholder="Confirma tu email" type="email" name="rEmail"/>
 
-                        <Field placeholder="Tu contraseña" className="custom-field" type="text" name="password"/>
-                        <ErrorMessage name="password" component="p" className="custom-error-message"/>
+                        {/* CONTRASEÑA */}
+                        <div className="relative">
+                            <PasswordField placeholder='Contraseña' name='password' />
+                            
+                        </div>
+                        
 
-                        {/* <Field placeholder="Confirma tu contraseña" className="form-control py-2" type="text" name="rPassword"/>
-                        <ErrorMessage name="rPassword" component="p"/> */}
-
+                        {/* TERMINOS Y CONDICIONES */}
                         <div className="flex items-center space-x-2">
                             <Field
                                 type="checkbox"
                                 name="termsAccepted"
-                                className="custom-checkbox"
+                                className=""
                             />
-                            <label className="text-xs" htmlFor="termsAccepted">
-                            Al registrarme acepto las <a className="text-celeste" href="/terminos-y-condiciones" target="_blank" rel="noopener noreferrer">politicas de privacidad</a>
+                            <label className="text-xxs text-black" htmlFor="termsAccepted">
+                            Al registrarme acepto las <a className="text-celeste text-xxs" href="/terminos-y-condiciones" target="_blank" rel="noopener noreferrer">politicas de privacidad</a>
                             </label>
                             <ErrorMessage name="termsAccepted" component="div" className="text-red-500" />
                         </div>
                         
-
-                        <CustomButton className='hover:bg-primario-hover focus:outline-none focus:bg-primario-hover' texto={'Registrarse'} disabled={!isValid || !dirty}/>
+                        {/* BOTON REGISTRARSE */}
+                        <CustomButton className='custom-button hover:bg-primario-hover focus:outline-none focus:bg-primario-hover dark:text-white' texto={'Registrarse'} disabled={!isValid || !dirty} type='signup'/>
                     </Form>
                     )}
                 </Formik>
 
-                <div className="flex flex-col gap-4 items-center">
-                    <p className="mt-4 text-sm">O continuar con: </p>
-                    <div className="g-apple-buttons flex gap-3">
-                        <button className="custom-social-button"><img className="w-[32px] h-[32px]" src={google} alt="" /></button>
-                        <button className="custom-social-button"><img className="w-[32px] h-[32px]" src={apple} alt="" /></button>                        
-                    </div>
-                    <div>
-                        <p className="text-center text-sm text-gris">
-                        ¿Ya tienes cuenta?{" "}                    
-                        </p>
-                        <div className="flex justify-center">
-                            <a href="/login"
-                                className="text-primario text-center font-semibold underline leading-[21px]">
-                                Iniciar sesión
-                            </a>
-                        </div>
-                    </div>
+
+                {/* YA TIENES CUENTA? */}
+                <div className="mt-4 flex flex-col gap-4 items-center">                    
+                    <p className="text-center text-sm text-gris">
+                    ¿Ya tienes cuenta?{" "}                    
+                    </p>
+                    <div className="flex justify-center">
+                        <Link to='/login'
+                            className="text-primario text-sm text-center font-semibold underline leading-[21px]">
+                            Iniciar sesión
+                        </Link>
+                    </div>                    
                 </div>
 
 
                 
         </div>
-        <img className="h-[614px] hidden md:block" src={image} alt="" />
+
+        {/* IMAGEN */}
+        <img className="hidden lg:block lg:h-[500px] xl:block xl:h-[614px] 2xl:block 2xl:h-[614px]" src={image} alt="" />
     </div>
+    </>
+    
   );
 };
